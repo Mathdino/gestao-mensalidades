@@ -1,0 +1,138 @@
+// Prisma schema for gestao-de-quadra
+// Fornecedor: PostgreSQL (Neon)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+// ============ BETTER AUTH TABLES ============
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now()) @map("createdAt")
+  updatedAt     DateTime  @updatedAt @map("updatedAt")
+
+  sessions  Session[]
+  accounts  Account[]
+
+  @@map("user")
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  expiresAt  DateTime @map("expiresAt")
+  token      String   @unique
+  createdAt  DateTime @default(now()) @map("createdAt")
+  updatedAt  DateTime @updatedAt @map("updatedAt")
+  ipAddress  String?  @map("ipAddress")
+  userAgent  String?  @map("userAgent")
+  userId     String   @map("userId")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String    @map("accountId")
+  providerId            String    @map("providerId")
+  userId                String    @map("userId")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @map("accessToken")
+  refreshToken          String?   @map("refreshToken")
+  idToken               String?   @map("idToken")
+  accessTokenExpiresAt  DateTime? @map("accessTokenExpiresAt")
+  refreshTokenExpiresAt DateTime? @map("refreshTokenExpiresAt")
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @map("createdAt")
+  updatedAt             DateTime  @updatedAt @map("updatedAt")
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expiresAt")
+  createdAt  DateTime @default(now()) @map("createdAt")
+  updatedAt  DateTime @updatedAt @map("updatedAt")
+
+  @@map("verification")
+}
+
+// ============ APP ENUMS ============
+
+enum PlayerType {
+  mensalista
+  avulso
+}
+
+enum PaymentStatus {
+  pago
+  nao_pago
+  nao_compareceu
+}
+
+// ============ APP TABLES ============
+
+model Config {
+  id          String   @id @default("default")
+  closingDay  Int      @default(10) @map("closing_day")
+  pixKey      String   @default("") @map("pix_key")
+  monthlyFee  Decimal  @default(0) @db.Decimal(10, 2) @map("monthly_fee")
+  pageUrl     String   @default("") @map("page_url")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("config")
+}
+
+model Player {
+  id             String       @id @default(cuid())
+  name           String
+  type           PlayerType   @default(mensalista)
+  isPaysMonthly  Boolean      @default(true) @map("is_pays_monthly")
+  isDiretoria    Boolean      @default(false) @map("is_diretoria")
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  payments  Payment[]
+
+  @@map("players")
+}
+
+model Payment {
+  id         String        @id @default(cuid())
+  playerId   String        @map("player_id")
+  player     Player        @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  month      Int
+  year       Int
+  status     PaymentStatus @default(nao_pago)
+  paidAt     DateTime?     @map("paid_at")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  @@unique([playerId, month, year])
+  @@map("payments")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  description String
+  amount      Decimal  @db.Decimal(10, 2)
+  month       Int
+  year        Int
+  isFixed     Boolean  @default(false) @map("is_fixed")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("expenses")
+}
