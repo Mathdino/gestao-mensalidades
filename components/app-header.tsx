@@ -30,21 +30,21 @@ export function AppHeader() {
             />
           </div>
           <span className="truncate text-base font-extrabold tracking-tight text-white">
-            Mensalistas FC
+            Mensalistas Fanfarrões
           </span>
         </Link>
         <nav className="flex shrink-0 items-center gap-1 rounded-full bg-black/10 p-1">
           {links.map((l) => {
-            const Icon = l.icon
+            const Icon = l.icon;
             return (
               <Link
                 key={l.href}
                 href={l.href}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-all',
+                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-all",
                   l.active
-                    ? 'bg-white text-primary shadow-sm'
-                    : 'text-white/80 hover:bg-white/10 hover:text-white',
+                    ? "bg-white text-primary shadow-sm"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -52,10 +52,10 @@ export function AppHeader() {
                   {l.label}
                 </span>
               </Link>
-            )
+            );
           })}
         </nav>
       </div>
     </header>
-  )
+  );
 }
